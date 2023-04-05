@@ -35,12 +35,12 @@ GET /_cat/indices?v
 ## 使用cUrl查询集群状态
 
 ```
-curl -X GET -H http://localhost:9200
-curl -X GET -H http://localhost:9200/_cluster/health
+curl -X GET http://localhost:9200
+curl -X GET http://localhost:9200/_cluster/health
 
 npm install -g json
 
-curl -X GET -H http://localhost:9200/_cluster/health | json
+curl -X GET http://localhost:9200/_cluster/health | json
 ```
 
 
