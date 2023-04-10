@@ -1,0 +1,74 @@
+version: "3.7"
+services:
+  es01:
+    image: "docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2"
+    container_name: es01
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      node.name: es01
+      discovery.seed_hosts: es01,es02,es03
+      cluster.initial_master_nodes: es01,es02,es03
+      cluster.name: mycluster
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    volumes:
+      - "es-data-es01:/usr/share/elasticsearch/data"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+  es02:
+    image: "docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2"
+    container_name: es02
+    ports:
+      - "9201:9200"
+      - "9301:9300"
+    environment:
+      node.name: es02
+      discovery.seed_hosts: es01,es02,es03
+      cluster.initial_master_nodes: es01,es02,es03
+      cluster.name: mycluster
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    volumes:
+      - "es-data-es02:/usr/share/elasticsearch/data"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+  es03:
+    image: "docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2"
+    container_name: es03
+    ports:
+      - "9202:9200"
+      - "9302:9300"
+    environment:
+      node.name: es03
+      discovery.seed_hosts: es01,es02,es03
+      cluster.initial_master_nodes: es01,es02,es03
+      cluster.name: mycluster
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    volumes:
+      - "es-data-es03:/usr/share/elasticsearch/data"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:7.10.2
+    container_name: kibana
+    depends_on:
+      - es01
+      - es02
+      - es03
+    ports:
+      - "5601:5601"
+      - "9600:9600"
+    environment:
+      SERVERNAME: kibana
+      ELASTICSEARCH_HOSTS: '["http://es01:9200","http://es02:9200","http://es03:9200"]'
+      ES_JAVA_OPTS: -Xmx512m -Xms512m
+volumes:
+  es-data-es01: {}
+  es-data-es02: {}
+  es-data-es03: {}
