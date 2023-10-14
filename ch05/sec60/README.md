@@ -58,11 +58,13 @@ https://github.com/boboweike/elasticsearch_complete_course/blob/main/ch05/sec60/
 
 ### 1.3 命令行执行导入
 
-`curl -H "Content-Type: application/x-ndjson" -XPOST http://localhost:9200/_bulk --data-binary "@movie_bulk_data.json.txt"`
+`curl -H "Content-Type: application/x-ndjson" -XPOST http://localhost:9200/_bulk --data-binary "@movie_bulk_data.json"`
 
 ### 1.4 校验
 
-GET /movies/\_search
+```json
+GET /movies/_search
+```
 
 ## 2. Query vs Filter Context
 
