@@ -1,79 +1,23 @@
-# Query DSL
+# 通过 URI + 参数方式进行查询
 
-- DSL = domain specific language
-- 基于 JSON 的查询语法
-- 表达能力更强，支持更复杂的查询(嵌套/复合)
-- 支持聚合分析
+```sh
+# GET|POST <your_index_name>/_search?q=<name:value> AND|OR <name:value>
 
-```json
-# 1. 简单查询
+# 1. 通过title查询电影
 
-GET movies/_search
-{
-  "query": {
-    "match": {
-      "title": "Lord"
-    }
-  }
-}
+# 查询所有title中含有Godfather的电影
+GET movies/_search?q=title:Godfather
 
-# 2. Copy to CURL
+# 查询title中满足多个条件的电影，隐含OR操作
+GET movies/_search?q=title:Godfather Knight Shawshank
 
-# 3. 聚合查询
+# 2. AND操作
 
-GET movies/_search
-{
-  "size": 0,
-  "aggs": {
-    "average_movie_rating": {
-      "avg": {
-        "field": "rating"
-      }
-    }
-  }
-}
+# 通过title AND actor查询电影
+GET movies/_search?q=title:Knight AND actors:Bale
 
-# 4. 叶子和复合查询
+# 3. 额外参数
 
-# 叶子查询
-GET movies/_search
-{
-  "query": {
-    "match_phrase": {
-      "synopsis": "Gandalf and Aragorn lead the World of Men against Saurons's army"
-    }
-  }
-}
+GET movies/_search?q=title:Godfather actors:(Brando OR Pacino) rating:(>=9.0 AND <=9.5)&from=0&size=10&sort=rating&default_operator=AND&explain=true
 
-# 复合查询
-GET movies/_search
-{
-  "query": {
-    "bool": {
-      "must": [
-        {
-          "match": {
-            "title": "Godfather"
-          }
-        }
-      ],
-      "must_not": [
-        {
-          "range": {
-            "rating": {
-              "lt": 9
-            }
-          }
-        }
-      ],
-      "filter": [
-        {
-          "match": {
-            "actors": "Brando"
-          }
-        }
-      ]
-    }
-  }
-}
 ```

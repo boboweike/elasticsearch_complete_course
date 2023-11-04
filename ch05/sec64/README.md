@@ -1,10 +1,230 @@
-# 第五章 ～ ES 查询介绍小结
+# ES 查询的公共特性(Feature)
 
-- ES 的查询可以分为`结构化`和`非结构化`查询两类。
-- 结构化查询适用于非文本类字段，例如数值，关键字，或日期。这些字段在索引时不经过文本分析。
-- 非结构化查询适用于文本类字段。非结构化查询会产生相关性(relevancy scoring)打分，ES 引擎会对文档根据匹配度进行打分。
-- 对于结构化数据，我们使用`term-level查询`。对于非结构数据，我们使用`全文本查询`。
-- 每一个查询请求首先由一个`协调者`节点接收并处理，由它协调分发到其它相关节点执行查询。这些相关节点执行查询并返回部分结果。协调者节点接收这些部分结果，聚合出最终结果，并将最终结果返回给客户端。
-- `Query DSL` 是创建 ES 查询的推荐方式，它的表达能力要远优于基于 `URL + 查询参数`的方式。
-- Query DSL 支持创建`叶子(leaf query)`或者`复合查询(compound query)`。叶子查询比较简单，只有一个查询条件。复合查询可以将多个查询条件通过逻辑关系组合起来。
-- 有些跨横切面(cross-cutting)的功能是所有查询类别都支持的，比方说分页，排序，高亮，对打分的解释(explanation)，对结果进行定制化处理等等。
+1. 分页
+2. 高亮
+3. Explanation
+4. 排序
+5. 响应结果处理
+
+```json
+# 1. 分页
+
+# 查询固定数量的电影
+GET movies/_search
+{
+  "size": 5,
+  "query": {
+    "match_all": {}
+  }
+}
+
+# 使用size + from进行分页
+GET movies/_search
+{
+  "size": 5,
+  "from": 1,
+  "query": {
+    "match_all": {}
+  }
+}
+
+# total_pages = ceil(total_hits / page_size)
+# 14 = ceil(137 / 10)
+# from = (page_size * (page_number - 1))
+# 50 = (10 * (6 - 1))
+
+
+# 2. 高亮
+
+# 高亮匹配结果
+GET movies/_search
+{
+  "_source": false,
+  "query": {
+    "term": {
+      "title": {
+        "value": "godfather"
+      }
+    }
+  },
+  "highlight": {
+    "fields": {
+      "title": {}
+    }
+  }
+}
+
+# 3. Explanation
+
+# Final relevancy score = boost * idf * tf
+# Idf = inverse document frequency
+# tf = Term frequency
+GET movies/_search
+{
+  "explain": true,
+  "_source": false,
+  "query": {
+    "match": {
+      "title": "Lord"
+    }
+  }
+}
+
+# 通过_explain端点查询和解释score
+GET movies/_explain/14
+{
+  "query": {
+    "match": {
+      "title": "Lord"
+    }
+  }
+}
+
+GET movies/_explain/14
+{
+  "query": {
+    "match": {
+      "title": "Lords"
+    }
+  }
+}
+
+# 4. 排序(Sorting)
+
+# 缺省根据打分(_score)排序
+GET movies/_search
+{
+  "size": 5,
+  "query": {
+    "match": {
+      "title": "Godfather"
+    }
+  }
+}
+
+# 等价于
+GET movies/_search
+{
+  "size": 5,
+  "query": {
+    "match": {
+      "title": "Godfather"
+    }
+  },
+  "sort": [
+    {
+      "_score": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+
+# 根据rating字段排序
+GET movies/_search
+{
+  "size": 5,
+  "query": {
+    "match": {
+      "genre": "crime"
+    }
+  },
+  "sort": [
+    {
+      "rating": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+
+# 根据rating字段排序，显示scoring
+GET movies/_search
+{
+  "track_scores": true,
+  "size": 5,
+  "query": {
+    "match": {
+      "genre": "crime"
+    }
+  },
+  "sort": [
+    {
+      "rating": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+
+# 多字段排序
+GET movies/_search
+{
+  "size": 5,
+  "query": {
+    "match": {
+      "genre": "crime"
+    }
+  },
+  "sort": [
+    {
+      "rating": {
+        "order": "asc"
+      }
+    },
+    {
+      "release_date": {
+        "order": "asc"
+      }
+    }
+  ]
+}
+
+# 5. 响应结果处理
+
+# 不返回source文档
+GET movies/_search
+{
+  "_source": false,
+  "query": {
+    "match": {
+      "certificate": "R"
+    }
+  }
+
+}
+
+# 返回指定字段
+GET movies/_search
+{
+  "_source": false,
+  "query": {
+    "match": {
+      "certificate": "R"
+    }
+  },
+  "fields": [
+    "title",
+    "director"
+  ]
+}
+
+# Source过滤
+GET movies/_search
+{
+  "_source": ["title", "synopsis", "rating"],
+  "query": {
+    "match": {
+      "certificate": "R"
+    }
+  }
+}
+```
+
+# 下节课
+
+# 1. term-level 查询
+
+# 2. 全文本查询
+
+# 3. 复合查询
