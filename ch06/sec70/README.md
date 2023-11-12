@@ -43,9 +43,7 @@ GET movies/_search
 {
   "query": {
     "wildcard": {
-      "title": {
-        "value": "f?ght"
-      }
+      "title": "f?ght"
     }
   }
 }
